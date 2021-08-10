@@ -42,7 +42,7 @@ class LitModel(pl.LightningModule):
         self.epochs = args.epochs
         self.save_dir = args.save_dir
         self.prune_ratio = args.prune_ratio
-        self.is_onnx_model = is_onnx_model(args.ckpt)
+        self.is_onnx_model = is_onnx_model(args.ckpt) if args.ckpt is not None else False
         self._device = torch.device(args.device)
 
         if self.is_onnx_model:
