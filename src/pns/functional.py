@@ -48,17 +48,17 @@ def is_depthwise_conv2d(module: torch.nn.Module) -> bool:
     return False
 
 
-def prune_bn2d(module: BatchNorm2d, keep_idxes):
+def prune_bn2d(module: BatchNorm2d, init_weight, init_bias, init_running_mean, init_running_var, keep_idxes):
     module.num_features = len(keep_idxes)
-    module.weight = torch.nn.Parameter(module.weight.data[keep_idxes])
+    module.weight = torch.nn.Parameter(init_weight[keep_idxes])
     module.weight.grad = None
-    module.bias = torch.nn.Parameter(module.bias.data[keep_idxes])
+    module.bias = torch.nn.Parameter(init_bias[keep_idxes])
     module.bias.grad = None
-    module.running_mean = module.running_mean[keep_idxes]
-    module.running_var = module.running_var[keep_idxes]
+    module.running_mean = init_running_mean[keep_idxes]
+    module.running_var = init_running_var[keep_idxes]
 
 
-def prune_conv2d(module: Conv2d, in_keep_idxes=None, out_keep_idxes=None):
+def prune_conv2d(module: Conv2d, init_weight, init_bias, in_keep_idxes=None, out_keep_idxes=None):
     if in_keep_idxes is None:
         in_keep_idxes = list(range(module.weight.shape[1]))
 
@@ -82,21 +82,21 @@ def prune_conv2d(module: Conv2d, in_keep_idxes=None, out_keep_idxes=None):
     module.out_channels = len(out_keep_idxes)
     module.in_channels = len(in_keep_idxes)
 
-    module.weight = torch.nn.Parameter(module.weight.data[out_keep_idxes, :, :, :])
+    module.weight = torch.nn.Parameter(init_weight[out_keep_idxes, :, :, :])
 
     if not is_depthwise:
-        module.weight = torch.nn.Parameter(module.weight.data[:, in_keep_idxes, :, :])
+        module.weight = torch.nn.Parameter(init_weight[:, in_keep_idxes, :, :])
 
     module.weight.grad = None
 
     if module.bias is not None:
-        module.bias = torch.nn.Parameter(module.bias.data[out_keep_idxes])
+        module.bias = torch.nn.Parameter(init_bias[out_keep_idxes])
         module.bias.grad = None
 
     return in_keep_idxes, out_keep_idxes
 
 
-def prune_fc(module: Linear, keep_idxes: List[int], bn_num_channels: int = None):
+def prune_fc(module: Linear, init_weight, keep_idxes: List[int], bn_num_channels: int = None):
     """
 
     Args:
@@ -121,7 +121,7 @@ def prune_fc(module: Linear, keep_idxes: List[int], bn_num_channels: int = None)
         keep_idxes = _keep_idxes
 
     module.in_features = len(keep_idxes)
-    module.weight = torch.nn.Parameter(module.weight.data[:, keep_idxes])
+    module.weight = torch.nn.Parameter(init_weight[:, keep_idxes])
     module.weight.grad = None
     return keep_idxes
 

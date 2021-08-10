@@ -382,7 +382,7 @@ if __name__ == "__main__":
 
     restored_model = LitModel.load_from_checkpoint(last_model_path, args=args)
 
-    pruner = SlimPruner(restored_model, args.prune_schema)
+    pruner = SlimPruner(restored_model, torch.load(args.init), args.prune_schema)
     pruning_result = pruner.run(args.prune_ratio)
 
     print(

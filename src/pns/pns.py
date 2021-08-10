@@ -159,7 +159,7 @@ class BN2dWrapper:
 class SlimPruner:
     PRUNING_RESULT_KEY = "_slim_pruning_result"
 
-    def __init__(self, model, schema: str = None):
+    def __init__(self, model, init, schema: str = None):
         """
 
         Args:
@@ -167,7 +167,7 @@ class SlimPruner:
             schema: pruning schema
         """
         self.pruned_model = model
-
+        self.init = init
         if schema is not None:
             if isinstance(schema, str):
                 with open(schema, "r") as f:
@@ -285,14 +285,16 @@ class SlimPruner:
             if isinstance(module, Conv2d):
                 prune_conv2d(
                     module,
+                    self.init[name + '.weight'],
+                    self.init[name + '.bias'] if name + '.bias' in self.init else None,
                     info[name]["in_channels_keep_idxes"],
                     info[name]["out_channels_keep_idxes"],
                 )
 
             elif isinstance(module, Linear):
-                prune_fc(module, info[name]["in_features_keep_idxes"])
+                prune_fc(module, self.init[name + '.weight'], info[name]["in_features_keep_idxes"])
             elif isinstance(module, BatchNorm2d):
-                prune_bn2d(module, info[name]["keep_idxes"])
+                prune_bn2d(module, self.init[name + '.weight'], self.init[name + '.bias'], self.init[name + '.running_mean'], self.init[name + '.running_var'], info[name]["keep_idxes"])
 
     def _export_pruning_result(self):
         prune_result = []
