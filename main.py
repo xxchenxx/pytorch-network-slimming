@@ -332,7 +332,7 @@ if __name__ == "__main__":
     trainer = pl.Trainer(
         gpus=1 if args.device == "cuda" else None,
         max_epochs=1 if args.debug else args.epochs,
-        check_val_every_n_epoch=10,
+        check_val_every_n_epoch=1,
         num_sanity_val_steps=0,
         limit_train_batches=10 if args.debug else 1.0,
         limit_test_batches=10 if args.debug else 1.0,
