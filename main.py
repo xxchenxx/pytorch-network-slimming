@@ -264,7 +264,7 @@ def parse_args():
 
     parser.add_argument("--debug", action="store_true", help="limit train/test data")
     parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"])
-
+    parser.add_argument("--init", type=str)
     parser.add_argument(
         "--export_onnx_path",
         default=None,
@@ -343,6 +343,9 @@ if __name__ == "__main__":
         ],
         logger=TFLogger(args.save_dir),
     )
+
+    if args.init is not None:
+        model = LitModel.load_from_checkpoint(args.init, args=args)
 
     if args.ckpt is None:
         trainer.fit(model)
