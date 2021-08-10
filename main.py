@@ -204,7 +204,6 @@ class LitModel(pl.LightningModule):
             self.val_dataset = Subset(CIFAR10(self.data_dir, train=True, transform=test_transform, download=True), list(range(45000, 50000)))
             self.test_dataset = CIFAR10(self.data_dir, train=False, transform=test_transform, download=True)
 
-
     def train_dataloader(self):
         return DataLoader(
             self.train_dataset,
@@ -351,7 +350,7 @@ if __name__ == "__main__":
         last_model_path = checkpoint_callback.last_model_path
     else:
         if not is_onnx_model(args.ckpt):
-            model = LitModel.load_from_checkpoint(args.ckpt, args=args)
+            model = LitModel.load_from_checkpoint(args.ckpt, args=args, strict=False)
             if args.ckpt_pruned:
                 pruner = SlimPruner(model)
                 print(f"Load pruning result from {args.ckpt}")
