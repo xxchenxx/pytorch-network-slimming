@@ -321,7 +321,7 @@ if __name__ == "__main__":
     model = LitModel(args)
 
     checkpoint_callback = ModelCheckpoint(
-        monitor="train_loss",
+        monitor="valid_loss",
         dirpath=args.save_dir,
         filename="{epoch:02d}-{train_loss:.2f}-{test_acc:.3f}",
         save_top_k=1,
