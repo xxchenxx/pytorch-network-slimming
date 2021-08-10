@@ -2,6 +2,7 @@ import torch
 from torchvision import models
 from .repvgg import func_dict as repvgg
 from .resnets import resnet20
+from .vgg import vgg16_bn
 
 def build_model(net, num_classes=10):
     if net in ["resnet18", "resnet34", "resnet50"]:
@@ -16,7 +17,7 @@ def build_model(net, num_classes=10):
     elif net in ["vgg11_bn"]:
         model = models.vgg11_bn(num_classes=num_classes)
     elif net in ["vgg16_bn"]:
-        model = models.vgg16_bn(num_classes=num_classes)
+        model = vgg16_bn(num_classes=num_classes)
     elif net in repvgg:
         model = repvgg[net](num_classes=num_classes)
     elif net in ["shufflenet_v2_x1_0", "shufflenet_v2_x1_5", "shufflenet_v2_x2_0"]:

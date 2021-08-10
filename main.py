@@ -164,7 +164,7 @@ class LitModel(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(
-            self.parameters(), lr=self.learning_rate, momentum=0.9, weight_decay=5e-4
+            self.parameters(), lr=self.learning_rate, momentum=0.9, weight_decay=1e-4
         )
         scheduler = scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[91,136], gamma=0.1)
         return [optimizer], [{"scheduler": scheduler, "interval": "epoch"}]
