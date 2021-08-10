@@ -350,7 +350,7 @@ if __name__ == "__main__":
         last_model_path = checkpoint_callback.last_model_path
     else:
         if not is_onnx_model(args.ckpt):
-            model = LitModel.load_from_checkpoint(args.ckpt, args=args, strict=False)
+            model = LitModel.load_from_checkpoint(args.ckpt, args=args)
             if args.ckpt_pruned:
                 pruner = SlimPruner(model)
                 print(f"Load pruning result from {args.ckpt}")
