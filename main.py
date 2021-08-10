@@ -402,7 +402,7 @@ if __name__ == "__main__":
     print(pruned_model)
     import torch.nn as nn
     for m in pruned_model.modules():
-        if isinstance(nn.Conv2d):
+        if isinstance(m, nn.Conv2d):
             print(m.weight.shape)
     fine_tune_checkpoint_callback = ModelCheckpoint(
         monitor="train_loss",
