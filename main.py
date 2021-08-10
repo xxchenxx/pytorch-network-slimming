@@ -59,7 +59,6 @@ class LitModel(pl.LightningModule):
             x = self.model.run(None, {"input": x.cpu().numpy().astype(np.float32)})
             x = torch.from_numpy(x[0])
         else:
-            print(self.model)
             x = self.model(x)
         return F.log_softmax(x, dim=1)
 
@@ -400,7 +399,10 @@ if __name__ == "__main__":
 
     pruned_model = pruner.pruned_model
     pruned_model.is_pruned = True
+    print(pruned_model)
 
+    for m in pruned_model.modules():
+        print(m.weight.shape)
     fine_tune_checkpoint_callback = ModelCheckpoint(
         monitor="train_loss",
         dirpath=args.save_dir,
