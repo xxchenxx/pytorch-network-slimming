@@ -147,7 +147,7 @@ class BN2dWrapper:
 
     def prune(self):
         assert self.keep_idxes is not None
-        prune_bn2d(self.pruned_module, self.keep_idxes)
+        prune_bn2d(self.pruned_module, self.init[self.name + '.weight'], self.init[self.name + '.bias'], self.init[self.name + '.running_mean'], self.init[self.name + '.running_var'], self.keep_idxes)
         self.is_pruned = True
 
     def prune_info(self):
@@ -199,16 +199,17 @@ class SlimPruner:
                     self.conv2d_modules[name] = Conv2dWrapper(
                         module,
                         modules[name]["name"],
+                        self.init,
                         prev_bn_name=modules[name].get("prev_bn", ""),
                         next_bn_name=modules[name].get("next_bn", ""),
                     )
                 elif isinstance(module, Linear):
                     if name in modules:
                         self.fc_modules[name] = LinearWrapper(
-                            module, name, prev_bn_name=modules[name].get("prev_bn", "")
+                            module, name, self.init, prev_bn_name=modules[name].get("prev_bn", "")
                         )
                 elif isinstance(module, BatchNorm2d):
-                    self.bn2d_modules[name] = BN2dWrapper(module, name)
+                    self.bn2d_modules[name] = BN2dWrapper(module, name, self.init)
 
     def _add_prefix_to_config_name(self, config):
         prefix = config.get("prefix", "")
