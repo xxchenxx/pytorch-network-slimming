@@ -18,7 +18,7 @@ from backbone.build import build_model
 from pns import SlimPruner
 from pns.functional import update_bn_grad
 
-pl.seed_everything(42)
+pl.seed_everything(1)
 
 
 def is_onnx_model(ckpt: str):
@@ -134,9 +134,7 @@ class LitModel(pl.LightningModule):
         optimizer = torch.optim.SGD(
             self.parameters(), lr=self.learning_rate, momentum=0.9, weight_decay=5e-4
         )
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=self.epochs
-        )
+        scheduler = scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[91,136], gamma=0.1)
         return [optimizer], [{"scheduler": scheduler, "interval": "epoch"}]
 
     def setup(self, stage=None):
@@ -187,6 +185,31 @@ class LitModel(pl.LightningModule):
                     ]
                 ),
             )
+        elif self.dataset == "tiny-imagenet":
+            from torch.utils.data import Subset
+            from torchvision.datasets import ImageFolder
+            data_dir = '../data/tiny-imagenet-200'
+            train_transform = transforms.Compose([
+                transforms.RandomCrop(64, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+            ])
+
+            test_transform = transforms.Compose([
+                transforms.ToTensor(),
+            ])
+
+            train_path = os.path.join(data_dir, 'train')
+            val_path = os.path.join(data_dir, 'val')
+
+            
+            split_file = 'npy_files/tiny-imagenet-train-val.npy'
+            split_permutation = list(np.load(split_file))
+
+            self.train_dataset = Subset(ImageFolder(train_path, transform=train_transform), split_permutation[:90000])
+            self.val_dataset = Subset(ImageFolder(train_path, transform=test_transform), split_permutation[90000:])
+            self.test_dataset = ImageFolder(val_path, transform=test_transform)
+
 
     def train_dataloader(self):
         return DataLoader(
@@ -198,7 +221,7 @@ class LitModel(pl.LightningModule):
 
     def val_dataloader(self):
         return DataLoader(
-            self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers
+            self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers
         )
 
     def test_dataloader(self):
@@ -213,10 +236,10 @@ def parse_args():
     parser.add_argument(
         "--dataset", type=str, default="cifar10", choices=["mnist", "cifar10"]
     )
-    parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--epochs", type=int, default=182)
+    parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--num_workers", type=int, default=6)
-    parser.add_argument("--learning_rate", type=float, default=2e-4)
+    parser.add_argument("--learning_rate", type=float, default=0.1)
     parser.add_argument("--save_dir", default="output")
     parser.add_argument(
         "--ckpt",

@@ -26,7 +26,7 @@ if __name__ == "__main__":
     args = parse_args()
     model = build_model(args.net)
     summary_model(model)
-    x = torch.Tensor(1, 3, 224, 224)
+    x = torch.Tensor(1, 3, 32, 32)
 
     config = gen_pruning_schema(model, x)
     config["prefix"] = args.prefix
