@@ -65,8 +65,8 @@ def prune_conv2d(module: Conv2d, init_weight, init_bias, in_keep_idxes=None, out
     if out_keep_idxes is None:
         out_keep_idxes = list(range(module.weight.shape[0]))
     print('--')
-    print(in_keep_idxes)
-    print(out_keep_idxes)
+    print(len(in_keep_idxes))
+    print(len(out_keep_idxes))
     print('--')
     is_depthwise = is_depthwise_conv2d(module)
 
