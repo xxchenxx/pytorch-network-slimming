@@ -81,7 +81,7 @@ def prune_conv2d(module: Conv2d, init_weight, init_bias, in_keep_idxes=None, out
 
     module.out_channels = len(out_keep_idxes)
     module.in_channels = len(in_keep_idxes)
-
+    print(len(out_keep_idxes))
     module.weight = torch.nn.Parameter(init_weight[out_keep_idxes, :, :, :])
 
     if not is_depthwise:
