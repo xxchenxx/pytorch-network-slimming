@@ -59,6 +59,7 @@ class LitModel(pl.LightningModule):
             x = self.model.run(None, {"input": x.cpu().numpy().astype(np.float32)})
             x = torch.from_numpy(x[0])
         else:
+            print(self.model)
             x = self.model(x)
         return F.log_softmax(x, dim=1)
 
