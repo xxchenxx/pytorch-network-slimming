@@ -252,7 +252,6 @@ class SlimPruner:
         for bn2d in self.bn2d_modules.values():
             bn2d.prune()
             bn2d_prune_info.append(bn2d.prune_info())
-            print(bn2d.pruned_module.weight.shape)
 
         df = pd.DataFrame(bn2d_prune_info)
         print("\nBatchNorm2d prune info")
