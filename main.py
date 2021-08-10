@@ -65,7 +65,7 @@ class LitModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = F.cross_entropy_loss(logits, y)
+        loss = F.cross_entropy(logits, y)
         self.log("train_loss", loss)
 
         if (
@@ -94,7 +94,7 @@ class LitModel(pl.LightningModule):
     def validation_epoch_end(self, outputs) -> None:
         logits = torch.cat([it[0] for it in outputs], dim=0)
         y = torch.cat([it[1] for it in outputs], dim=0)
-        loss = F.cross_entropy_loss(logits, y)
+        loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         acc = accuracy(preds, y)
 
@@ -132,7 +132,7 @@ class LitModel(pl.LightningModule):
     def test_epoch_end(self, outputs):
         logits = torch.cat([it[0] for it in outputs], dim=0)
         y = torch.cat([it[1] for it in outputs], dim=0)
-        loss = F.cross_entropy_loss(logits, y)
+        loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         acc = accuracy(preds, y)
 
