@@ -22,10 +22,11 @@ SHORTCUTS_MERGE_AND = "and"
 
 
 class Conv2dWrapper:
-    def __init__(self, module, name, prev_bn_name=None, next_bn_name=None):
+    def __init__(self, module, name, init, prev_bn_name=None, next_bn_name=None):
         self.module: Conv2d = copy.deepcopy(module)
         self.pruned_module: Conv2d = module
         self.name = name
+        self.init = init
         self.prev_bn_name = prev_bn_name
         self.next_bn_name = next_bn_name
 
@@ -41,6 +42,8 @@ class Conv2dWrapper:
 
         self.in_channels_keep_idxes, self.out_channels_keep_idxes = prune_conv2d(
             self.pruned_module,
+            self.init[self.name + ".weight"],
+            self.init[self.name + ".bias"],
             prev_bn.keep_idxes if prev_bn else None,
             next_bn.keep_idxes if next_bn else None,
         )
@@ -69,10 +72,11 @@ class Conv2dWrapper:
 
 
 class LinearWrapper:
-    def __init__(self, module, name, prev_bn_name=None):
+    def __init__(self, module, name, init, prev_bn_name=None):
         self.module = copy.deepcopy(module)
         self.pruned_module: Linear = module
         self.name = name
+        self.init = init
         self.prev_bn_name = prev_bn_name
         self.is_pruned = False
         self.in_features_keep_idxes = None
@@ -86,7 +90,7 @@ class LinearWrapper:
 
         """
         self.in_features_keep_idxes = prune_fc(
-            self.pruned_module, prev_bn.keep_idxes, prev_bn.module.num_features
+            self.pruned_module, self.init[self.name + ".weight"], prev_bn.keep_idxes, prev_bn.module.num_features
         )
         self.is_pruned = True
 
@@ -107,12 +111,13 @@ class LinearWrapper:
 
 
 class BN2dWrapper:
-    def __init__(self, module: BatchNorm2d, name):
+    def __init__(self, module: BatchNorm2d, name, init):
         self.module = copy.deepcopy(module)
         self.pruned_module = module
         self.name = name
         self.keep_idxes = None
         self.is_pruned = False
+        self.init = init
 
     @property
     def is_idxes_calculated(self):
