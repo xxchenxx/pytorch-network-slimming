@@ -265,6 +265,7 @@ class SlimPruner:
             )
             print(conv2d.pruned_module.weight.shape)
             conv2d_prune_info.append(conv2d.prune_info())
+        assert False
         df = pd.DataFrame(conv2d_prune_info)
         print("\nConv2d prune info")
         print(df.to_markdown() + "\n")
