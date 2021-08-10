@@ -263,9 +263,8 @@ class SlimPruner:
                 self.bn2d_modules[conv2d.prev_bn_name] if conv2d.prev_bn_name else None,
                 self.bn2d_modules[conv2d.next_bn_name] if conv2d.next_bn_name else None,
             )
-            print(conv2d.pruned_module.weight.shape)
             conv2d_prune_info.append(conv2d.prune_info())
-        assert False
+
         df = pd.DataFrame(conv2d_prune_info)
         print("\nConv2d prune info")
         print(df.to_markdown() + "\n")
