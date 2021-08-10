@@ -25,7 +25,7 @@ class Conv2dWrapper:
     def __init__(self, module, name, init, prev_bn_name=None, next_bn_name=None):
         self.module: Conv2d = copy.deepcopy(module)
         self.pruned_module: Conv2d = module
-        self.name = name
+        self.name = 'model.' + name
         self.init = init
         self.prev_bn_name = prev_bn_name
         self.next_bn_name = next_bn_name
@@ -75,7 +75,7 @@ class LinearWrapper:
     def __init__(self, module, name, init, prev_bn_name=None):
         self.module = copy.deepcopy(module)
         self.pruned_module: Linear = module
-        self.name = name
+        self.name = 'model.' + name
         self.init = init
         self.prev_bn_name = prev_bn_name
         self.is_pruned = False
@@ -114,7 +114,7 @@ class BN2dWrapper:
     def __init__(self, module: BatchNorm2d, name, init):
         self.module = copy.deepcopy(module)
         self.pruned_module = module
-        self.name = name
+        self.name = 'model.' + name
         self.keep_idxes = None
         self.is_pruned = False
         self.init = init
