@@ -193,7 +193,7 @@ class SlimPruner:
                 if isinstance(module, Conv2d):
                     self.conv2d_modules[name] = Conv2dWrapper(
                         module,
-                        modules[]["name"],
+                        modules[name]["name"],
                         prev_bn_name=modules[name].get("prev_bn", ""),
                         next_bn_name=modules[name].get("next_bn", ""),
                     )
