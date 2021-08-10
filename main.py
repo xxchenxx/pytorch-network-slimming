@@ -99,6 +99,44 @@ class LitModel(pl.LightningModule):
         acc = accuracy(preds, y)
 
         if self.is_onnx_model:
+            print(f"valid_loss: {loss.item()}, valid_acc: {acc.item()}")
+            return
+
+        self.log_dict({"valid_loss": loss, "valid_acc": acc}, prog_bar=True)
+        # dump metric
+        metric = {
+            "valid_acc": acc.item(),
+            "net": self.net,
+            "params": sum(
+                p.numel() for p in self.model.parameters() if p.requires_grad
+            ),
+            "s": self.s,
+        }
+        if self.is_pruned:
+            metric["prune_ratio"] = self.prune_ratio
+        else:
+            metric["prune_ratio"] = 0.0
+
+        with open(
+            os.path.join(self.save_dir, "val_metric.json"), "w", encoding="utf-8"
+        ) as f:
+            json.dump(metric, f, indent=2, ensure_ascii=False)
+
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        return logits, y
+
+    def test_epoch_end(self, outputs):
+        logits = torch.cat([it[0] for it in outputs], dim=0)
+        y = torch.cat([it[1] for it in outputs], dim=0)
+        loss = F.nll_loss(logits, y)
+        preds = torch.argmax(logits, dim=1)
+        acc = accuracy(preds, y)
+
+        if self.is_onnx_model:
             print(f"test_loss: {loss.item()}, test_acc: {acc.item()}")
             return
 
@@ -118,17 +156,11 @@ class LitModel(pl.LightningModule):
             metric["prune_ratio"] = 0.0
 
         with open(
-            os.path.join(self.save_dir, "metric.json"), "w", encoding="utf-8"
+            os.path.join(self.save_dir, "test_metric.json"), "w", encoding="utf-8"
         ) as f:
             json.dump(metric, f, indent=2, ensure_ascii=False)
 
         return loss
-
-    def test_step(self, batch, batch_idx):
-        return self.validation_step(batch, batch_idx)
-
-    def test_epoch_end(self, outputs):
-        return self.validation_epoch_end(outputs)
 
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(
@@ -158,39 +190,9 @@ class LitModel(pl.LightningModule):
                     self.data_dir, train=False, transform=transform, download=True
                 )
         elif self.dataset == "cifar10":
-            self.train_dataset = CIFAR10(
-                self.data_dir,
-                train=True,
-                download=True,
-                transform=transforms.Compose(
-                    [
-                        transforms.RandomCrop(32, padding=4),
-                        transforms.RandomHorizontalFlip(),
-                        transforms.ToTensor(),
-                        transforms.Normalize(
-                            (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-                        ),
-                    ]
-                ),
-            )
-            self.test_dataset = CIFAR10(
-                self.data_dir,
-                train=False,
-                transform=transforms.Compose(
-                    [
-                        transforms.ToTensor(),
-                        transforms.Normalize(
-                            (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-                        ),
-                    ]
-                ),
-            )
-        elif self.dataset == "tiny-imagenet":
             from torch.utils.data import Subset
-            from torchvision.datasets import ImageFolder
-            data_dir = '../data/tiny-imagenet-200'
             train_transform = transforms.Compose([
-                transforms.RandomCrop(64, padding=4),
+                transforms.RandomCrop(32, padding=4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
             ])
@@ -198,17 +200,9 @@ class LitModel(pl.LightningModule):
             test_transform = transforms.Compose([
                 transforms.ToTensor(),
             ])
-
-            train_path = os.path.join(data_dir, 'train')
-            val_path = os.path.join(data_dir, 'val')
-
-            
-            split_file = 'npy_files/tiny-imagenet-train-val.npy'
-            split_permutation = list(np.load(split_file))
-
-            self.train_dataset = Subset(ImageFolder(train_path, transform=train_transform), split_permutation[:90000])
-            self.val_dataset = Subset(ImageFolder(train_path, transform=test_transform), split_permutation[90000:])
-            self.test_dataset = ImageFolder(val_path, transform=test_transform)
+            self.train_dataset = Subset(CIFAR10(self.data_dir, train=True, transform=train_transform, download=True), list(range(45000)))
+            self.val_dataset = Subset(CIFAR10(self.data_dir, train=True, transform=test_transform, download=True), list(range(45000, 50000)))
+            self.test_dataset = CIFAR10(self.data_dir, train=False, transform=test_transform, download=True)
 
 
     def train_dataloader(self):
@@ -234,7 +228,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--net", type=str, default="resnet18")
     parser.add_argument(
-        "--dataset", type=str, default="cifar10", choices=["mnist", "cifar10"]
+        "--dataset", type=str, default="cifar10", choices=["mnist", "cifar10","tiny-imagenet"]
     )
     parser.add_argument("--epochs", type=int, default=182)
     parser.add_argument("--batch_size", type=int, default=128)
