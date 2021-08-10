@@ -400,9 +400,10 @@ if __name__ == "__main__":
     pruned_model = pruner.pruned_model
     pruned_model.is_pruned = True
     print(pruned_model)
-
+    import torch.nn as nn
     for m in pruned_model.modules():
-        print(m.weight.shape)
+        if isinstance(nn.Conv2d):
+            print(m.weight.shape)
     fine_tune_checkpoint_callback = ModelCheckpoint(
         monitor="train_loss",
         dirpath=args.save_dir,
